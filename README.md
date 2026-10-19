@@ -9,6 +9,7 @@
 ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
 ![Version](https://img.shields.io/badge/Version-2.5.0-emerald.svg)
 ![Platform](https://img.shields.io/badge/Platform-Tampermonkey%20%7C%20Violentmonkey-orange.svg)
+[![Discord](https://img.shields.io/badge/Discord-_kenzi_04-5865F2?logo=discord&logoColor=white)](https://discord.com)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Donate-yellow.svg?logo=buy-me-a-coffee)](https://buymeacoffee.com/xkenzix)
 ![Design System](https://img.shields.io/badge/UI-Silph%20Tactical-red.svg)
 
@@ -46,21 +47,29 @@
 
 | Key | Action |
 | :--- | :--- |
-| **`H`** | Toggle main Silph Tactical drawer menu (`POKÉ [H]`) |
+| **`H`** | Toggle main Silph Tactical drawer menu (`SILPH [H]`) |
 
 ---
 
 ## 🚀 Installation Guide (Tampermonkey)
 
 1. Install the **[Tampermonkey](https://www.tampermonkey.net/)** extension in your browser (Brave, Chrome, Edge, Firefox).
-2. Open the Tampermonkey extension icon ➔ **Dashboard** ➔ click the **`+`** tab (*Create a new script*).
-3. Replace the default template with the code from [`pokesurvivor.user.js`](pokesurvivor.user.js) and press **`Ctrl + S`** (*File ➔ Save*).
-4. Navigate to the official game: **[https://pokesurvivor.com](https://pokesurvivor.com)**.
-5. Look for the sleek `POKÉ [H]` pill in the top-right corner!
+2. Click this direct 1-click install link:  
+   👉 **[Install PokéSurvivor Master Suite (.user.js)](https://raw.githubusercontent.com/DevKenzi/pokesurvivor-suite/main/pokesurvivor.user.js)**  
+   *(Tampermonkey will open a tab — just click the green **Install** button).*
+3. *(Alternative manual method)*: Create a new script in Tampermonkey dashboard, paste the contents of [`pokesurvivor.user.js`](pokesurvivor.user.js), and save (**Ctrl + S**).
+4. Navigate to the game: **[https://pokesurvivor.com](https://pokesurvivor.com)**.
+5. The `SILPH [H]` overlay will appear in the top-right corner!
 
 ---
 
+## 💬 Support & Contact
 
+Have questions, suggestions, or found an issue in the game?
+- 🐛 **Bug Reports:** Open an [Issue on GitHub](https://github.com/DevKenzi/pokesurvivor-suite/issues).
+- 💬 **Discord:** Reach out directly: `_kenzi_04`
+
+---
 
 ## ☕ Support the Project
 
@@ -73,4 +82,3 @@ If this suite helped you climb the leaderboards, save time, and catch shinies, c
 ## 📜 License
 
 This project is licensed under the **GNU General Public License v3.0 (GPLv3)**.
-
