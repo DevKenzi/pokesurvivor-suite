@@ -6,7 +6,9 @@
 // @author       DevKenzi
 // @match        https://pokesurvivor.com/*
 // @icon         https://pokesurvivor.com/assets/icons/icon-96.png
-// @supportURL   https://buymeacoffee.com/xkenzix
+// @supportURL   https://github.com/DevKenzi/pokesurvivor-suite/issues
+// @contributionURL https://buymeacoffee.com/xkenzix
+// @license      GPL-3.0-or-later
 // @grant        none
 // @run-at       document-start
 // ==/UserScript==
