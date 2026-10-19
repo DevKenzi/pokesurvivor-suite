@@ -60,10 +60,7 @@
 
 ---
 
-## 🎨 Figma Design System
 
-The suite includes a ready-to-import vector design kit for Figma:
-- [`figma-ui-kit.svg`](figma-ui-kit.svg) — Drag and drop directly onto your Figma canvas to inspect and edit auto-layout frames, color tokens, and hardware switch variants.
 
 ## ☕ Support the Project
 
