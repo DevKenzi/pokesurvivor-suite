@@ -4,7 +4,7 @@
 > Built with zero frameworks, zero dependencies, and 100% pure ASCII JavaScript.
 
 ![License](https://img.shields.io/badge/License-GPLv3-blue.svg)
-![Version](https://img.shields.io/badge/Version-2.9.0-emerald.svg)
+![Version](https://img.shields.io/badge/Version-2.9.2-emerald.svg)
 ![Platform](https://img.shields.io/badge/Platform-Tampermonkey%20%7C%20Violentmonkey-orange.svg)
 [![Discord](https://img.shields.io/badge/Discord-_kenzi_04-5865F2?logo=discord&logoColor=white)](https://discord.com)
 [![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Donate-yellow.svg?logo=buy-me-a-coffee)](https://buymeacoffee.com/xkenzix)
