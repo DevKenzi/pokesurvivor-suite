@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         PokeSurvivor Master Suite (Silph Tactical Edition)
 // @namespace    https://github.com/DevKenzi/pokesurvivor-suite
-// @version      2.9.0
+// @version      2.9.2
 // @description  Map ESP Radar, Insta-Chest, Infinite Rerolls, Arceus Aegis & Legal Overdrive for official leaderboards!
 // @author       DevKenzi
 // @match        https://pokesurvivor.com/*
@@ -13,10 +13,12 @@
 // @run-at       document-start
 // ==/UserScript==
 
+/* global G, GM_info */
+
 /**
  * ============================================================================
  * [*] PokeSurvivor Master Suite - Silph Tactical Edition (Standalone)
- * Version: 2.9.0
+ * Version: 2.9.2
  * 
  * Features:
  * - Silph Tactical HUD: High-grade gaming overlay with zero AI slop
@@ -32,6 +34,8 @@
  */
 (function() {
   'use strict';
+
+  const SUITE_VERSION = (typeof GM_info !== 'undefined' && GM_info.script && GM_info.script.version) ? GM_info.script.version : '2.9.2';
 
   // =========================================================================
   // 1. SEAMLESS REDIRECT & ADDRESS MASKING
@@ -50,7 +54,7 @@
   if (window._psMasterLoaded) return;
   window._psMasterLoaded = true;
 
-  console.log('%c[Poke-Suite v2.9.0] Initializing Silph Tactical Suite...', 'color:#ef4444;font-weight:bold;font-size:14px;');
+  console.log('%c[Poke-Suite v2.9.2] Initializing Silph Tactical Suite...', 'color:#ef4444;font-weight:bold;font-size:14px;');
 
   // =========================================================================
   // 2. USER SETTINGS (LOCALSTORAGE)
@@ -251,7 +255,7 @@
             <span style="font-size: 12px; font-weight: 900; color: #f8fafc; letter-spacing: 0.5px;">SILPH SCOPE</span>
             <span style="font-size: 9px; font-weight: 800; color: #ef4444; background: rgba(239,68,68,0.15); padding: 1px 5px; border-radius: 4px;">GEN-9</span>
           </div>
-          <span style="font-size: 9px; color: #38bdf8; font-family: monospace; font-weight: 800; background: rgba(56,189,248,0.1); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(56,189,248,0.25);">v2.9.0</span>
+          <span style="font-size: 9px; color: #38bdf8; font-family: monospace; font-weight: 800; background: rgba(56,189,248,0.1); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(56,189,248,0.25);">v${SUITE_VERSION}</span>
         </div>
 
         <!-- Pokedex Tabs -->
@@ -725,7 +729,7 @@
       pl.rerollBonus = 9999;
       pl.rerolls = 0;
       if (btn) btn.classList.remove('hidden');
-      if (num) num.textContent = 'INF';
+      if (num) num.textContent = '\u221E';
     } else {
       // Revert from 9999 back to legitimate user stats
       pl.rerollBonus = pl._psLegitBonus !== undefined ? pl._psLegitBonus : 0;
@@ -899,6 +903,7 @@
       // 1. Interactive map specials (chests, altars, healing springs)
       if (G.World && typeof G.World.specialsNear === 'function') {
         const specials = G.World.specialsNear(pl.x, pl.y, 4500) || [];
+        const springs = [];
         for (const s of specials) {
           if (!s) continue;
           if (s.type === 'bigchest' && cfg.espChests && !s.used && s.open < 3.5) {
@@ -907,7 +912,7 @@
               y: s.y,
               yOffset: -12,
               r: 22,
-              icon: '[Chest]',
+              icon: '\u{1F381}',
               name: 'CHEST',
               color: '#fbbf24',
               borderColor: '#fbbf24',
@@ -919,24 +924,39 @@
               y: s.y,
               yOffset: -14,
               r: 20,
-              icon: '[*]',
+              icon: '\u26A1',
               name: 'ALTAR',
               color: '#38bdf8',
               borderColor: '#38bdf8',
               isBoss: false
             });
           } else if (s.type === 'spring' && cfg.espSprings && s.charge >= 0.1) {
-            targets.push({
-              x: s.x,
-              y: s.y,
-              yOffset: -6,
-              r: 26,
-              icon: '[Spring]',
-              name: 'HEAL',
-              color: '#4ade80',
-              borderColor: '#4ade80',
-              isBoss: false
-            });
+            springs.push(s);
+          }
+        }
+
+        // Limit springs: show on-screen springs, but for off-screen springs only show the closest 2 to prevent edge clutter
+        if (springs.length > 0) {
+          springs.sort((a, b) => Math.hypot(a.x - pl.x, a.y - pl.y) - Math.hypot(b.x - pl.x, b.y - pl.y));
+          let offScreenSpringCount = 0;
+          for (const s of springs) {
+            const sx = toScreenX(s.x);
+            const sy = toScreenY(s.y);
+            const isOn = (sx >= 44 && sx <= W - 44 && sy >= 44 && sy <= H - 44);
+            if (isOn || offScreenSpringCount < 2) {
+              if (!isOn) offScreenSpringCount++;
+              targets.push({
+                x: s.x,
+                y: s.y,
+                yOffset: -6,
+                r: 26,
+                icon: '\u{1F4A7}',
+                name: 'HEAL',
+                color: '#4ade80',
+                borderColor: '#4ade80',
+                isBoss: false
+              });
+            }
           }
         }
       }
@@ -954,7 +974,7 @@
               y: e.y,
               yOffset: -(e.bodyH ? e.bodyH * 0.45 : 18),
               r: Math.max(26, (e.r || 20) * 1.25),
-              icon: '[Boss]',
+              icon: '\u{1F451}',
               name: `${bName} [${hpPct}%]`,
               color: '#ef4444',
               borderColor: '#ef4444',
@@ -967,7 +987,7 @@
               y: e.y,
               yOffset: -(e.bodyH ? e.bodyH * 0.45 : 14),
               r: 22,
-              icon: '[Shiny]',
+              icon: '\u2728',
               name: `SHINY ${sName}`,
               color: '#f472b6',
               borderColor: '#f472b6',
@@ -979,6 +999,8 @@
 
       // Render radar markers and edge arrows
       const pad = 44;
+      const edgeItems = [];
+
       for (const t of targets) {
         const ox = toScreenX(t.x);
         const oy = toScreenY(t.y + (t.yOffset || 0));
@@ -1010,7 +1032,7 @@
 
           // Tactical Badge Tag
           const label = `${t.icon} ${t.name} [${dist}m]`;
-          ctx.font = 'bold 10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          ctx.font = 'bold 10px "Segoe UI Emoji", "Apple Color Emoji", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
           const tm = ctx.measureText(label);
           const bgW = tm.width + 14;
           const bgH = 18;
@@ -1044,12 +1066,54 @@
           const edgeX = px + dx * tRay;
           const edgeY = py + dy * tRay;
 
+          edgeItems.push({ t, edgeX, edgeY, ang, dist });
+        }
+      }
+
+      // Resolve edge overlaps so badges never collide or stack on top of each other
+      if (edgeItems.length > 0) {
+        const minX = pad, maxX = W - pad;
+        const minY = pad, maxY = H - pad;
+        const left = [], right = [], top = [], bottom = [];
+
+        edgeItems.forEach(it => {
+          if (Math.abs(it.edgeX - minX) < 4) left.push(it);
+          else if (Math.abs(it.edgeX - maxX) < 4) right.push(it);
+          else if (Math.abs(it.edgeY - minY) < 4) top.push(it);
+          else bottom.push(it);
+        });
+
+        const adjust1D = (arr, coordKey, minVal, maxVal, spacing) => {
+          arr.sort((a, b) => a[coordKey] - b[coordKey]);
+          for (let i = 1; i < arr.length; i++) {
+            if (arr[i][coordKey] < arr[i - 1][coordKey] + spacing) {
+              arr[i][coordKey] = arr[i - 1][coordKey] + spacing;
+            }
+          }
+          if (arr.length > 0 && arr[arr.length - 1][coordKey] > maxVal) {
+            let over = arr[arr.length - 1][coordKey] - maxVal;
+            for (let i = arr.length - 1; i >= 0; i--) {
+              arr[i][coordKey] -= over;
+              if (i > 0 && arr[i][coordKey] < arr[i - 1][coordKey] + spacing) {
+                arr[i - 1][coordKey] = arr[i][coordKey] - spacing;
+              }
+            }
+          }
+        };
+
+        adjust1D(left, 'edgeY', minY, maxY, 34);
+        adjust1D(right, 'edgeY', minY, maxY, 34);
+        adjust1D(top, 'edgeX', minX, maxX, 75);
+        adjust1D(bottom, 'edgeX', minX, maxX, 75);
+
+        for (const it of edgeItems) {
+          const t = it.t;
           ctx.save();
-          ctx.translate(edgeX, edgeY);
+          ctx.translate(it.edgeX, it.edgeY);
 
           // Arrow
           ctx.save();
-          ctx.rotate(ang);
+          ctx.rotate(it.ang);
           ctx.fillStyle = t.color;
           ctx.beginPath();
           ctx.moveTo(14, 0);
@@ -1060,14 +1124,14 @@
           ctx.fill();
           ctx.restore();
 
-          // Distance Tag
-          const tag = `${t.icon} ${dist}m`;
-          ctx.font = 'bold 10px -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
+          // Distance Tag with Icon & Name
+          const tag = `${t.icon} ${t.name} ${it.dist}m`;
+          ctx.font = 'bold 10px "Segoe UI Emoji", "Apple Color Emoji", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
           const tm = ctx.measureText(tag);
           const bw = tm.width + 12;
           const bh = 17;
           const bx = -bw / 2;
-          const by = edgeY > H - 55 ? -28 : 12;
+          const by = it.edgeY > H - 55 ? -28 : 12;
 
           ctx.fillStyle = 'rgba(7, 10, 18, 0.92)';
           ctx.fillRect(bx, by, bw, bh);
@@ -1089,5 +1153,5 @@
   }
 
   bootSuite();
-  console.log('%c[Poke-Suite v2.9.0] Ready to play with Silph Tactical HUD!', 'color:#ef4444;font-weight:bold;font-size:14px;');
+  console.log('%c[Poke-Suite v2.9.2] Ready to play with Silph Tactical HUD!', 'color:#ef4444;font-weight:bold;font-size:14px;');
 })();
