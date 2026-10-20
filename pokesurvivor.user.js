@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         PokéSurvivor Master Suite (Silph Tactical Edition)
+// @name         PokeSurvivor Master Suite (Silph Tactical Edition)
 // @namespace    https://github.com/DevKenzi/pokesurvivor-suite
-// @version      2.5.0
-// @description  Map ESP Radar, Insta-Chest, Infinite Card Rerolls, Max Account & Legal God-Buff for official leaderboards!
+// @version      2.9.0
+// @description  Map ESP Radar, Insta-Chest, Infinite Rerolls, Arceus Aegis & Legal Overdrive for official leaderboards!
 // @author       DevKenzi
 // @match        https://pokesurvivor.com/*
 // @icon         https://pokesurvivor.com/assets/icons/icon-96.png
@@ -15,18 +15,19 @@
 
 /**
  * ============================================================================
- * ⚡ PokéSurvivor Master Suite - Silph Tactical Edition (Standalone)
- * Version: 2.5.0
+ * [*] PokeSurvivor Master Suite - Silph Tactical Edition (Standalone)
+ * Version: 2.9.0
  * 
  * Features:
- * • Silph Tactical HUD: High-grade gaming overlay with zero AI slop
- * • Clean URL Masking: Seamlessly play on pokesurvivor.com without dev.html in address bar
- * • Visual ESP Radar: On-screen markers & directional edge arrows for chests, altars, springs & bosses
- * • Insta-Chest: Chests open instantly on contact (0.01s instead of 3.5s)
- * • Infinite Card Rerolls: Reroll level-up choices indefinitely (Reroll ∞) to build your dream kit
- * • Account Booster: 999,999 coins, tickets, all Pokémon + Shiny variants, max upgrades
- * • God-Buff: 45,000 HP, 1900x Atk, 25x faster cooldown, Shell Bell lifesteal, 2500 magnet
- *   (100% compliant with clean() anti-cheat verification for official TOP 50 leaderboards)
+ * - Silph Tactical HUD: High-grade gaming overlay with zero AI slop
+ * - Clean URL Masking: Seamlessly play on pokesurvivor.com without dev.html in address bar
+ * - Visual ESP Radar: On-screen markers & directional edge arrows for chests, altars, springs & bosses
+ * - Insta-Chest: Chests open instantly on contact (0.01s instead of 3.5s)
+ * - Infinite Card Rerolls: Reroll level-up choices indefinitely (Reroll INF) to build your dream kit
+ * - Arceus Aegis: Complete protection from lethal 30m+ Judgment touch, pillars & cross beams
+ * - Account Booster: 999,999 coins, tickets, all Pokemon + Shiny variants, max upgrades
+ * - God-Buff Overdrive: 42,000 HP, 1800x Atk, 25x faster cooldown, Shell Bell lifesteal, 2500 magnet
+ * - Leaderboard Auto-Compliance: Enforces clean() & Firebase limits (45:00 max, 31.5k kills) for TOP 1
  * ============================================================================
  */
 (function() {
@@ -49,7 +50,7 @@
   if (window._psMasterLoaded) return;
   window._psMasterLoaded = true;
 
-  console.log('%c[Poké-Suite v2.5] Initializing Silph Tactical Suite...', 'color:#ef4444;font-weight:bold;font-size:14px;');
+  console.log('%c[Poke-Suite v2.9.0] Initializing Silph Tactical Suite...', 'color:#ef4444;font-weight:bold;font-size:14px;');
 
   // =========================================================================
   // 2. USER SETTINGS (LOCALSTORAGE)
@@ -62,7 +63,8 @@
     espSprings: true,
     espBosses: true,
     instaChest: true,
-    infiniteRerolls: true
+    infiniteRerolls: true,
+    arceusShield: true
   };
 
   let cfg = Object.assign({}, defaultSettings);
@@ -73,12 +75,14 @@
       delete parsed.godBuffActive;
       delete parsed.godMode;
       delete parsed.afkMode;
+      delete parsed.afkAutoPick;
       cfg = Object.assign(cfg, parsed);
     }
     const cleanStorage = Object.assign({}, cfg);
     delete cleanStorage.godBuffActive;
     delete cleanStorage.godMode;
     delete cleanStorage.afkMode;
+    delete cleanStorage.afkAutoPick;
     localStorage.setItem(SETTINGS_KEY, JSON.stringify(cleanStorage));
   } catch (e) {}
 
@@ -175,14 +179,14 @@
       .ps-btn-tactical:hover { filter: brightness(1.15); transform: translateY(-1px); }
       .ps-btn-tactical:active { transform: scale(0.98); }
     `;
-    document.head.appendChild(styleEl);
+    (document.head || document.documentElement).appendChild(styleEl);
 
     const root = document.createElement('div');
     root.id = 'ps-suite-root';
-    root.style = 'position:fixed;top:16px;right:16px;z-index:999999;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;user-select:none;';
+    root.style = 'position:fixed;top:16px;right:16px;z-index:2147483647;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;user-select:none;pointer-events:auto;';
 
     root.innerHTML = `
-      <!-- Floating Trigger Pill (Poké Ball) -->
+      <!-- Floating Trigger Pill (Poke Ball) -->
       <div id="ps-float-btn" title="Click or press 'H' to toggle" style="
         background: linear-gradient(135deg, #1e293b, #0f172a);
         border: 1.5px solid rgba(239, 68, 68, 0.6);
@@ -202,7 +206,7 @@
         <span style="font-size:10px;color:#ef4444;font-family:monospace;font-weight:800;background:rgba(239,68,68,0.15);padding:1px 5px;border-radius:4px;border:1px solid rgba(239,68,68,0.3);">[H]</span>
       </div>
 
-      <!-- Main Pokédex / Silph Scope Drawer -->
+      <!-- Main Pokedex / Silph Scope Drawer -->
       <div id="ps-main-panel" style="
         display: none; position: absolute; top: 46px; right: 0;
         background: #0b1120;
@@ -212,14 +216,14 @@
         box-shadow: 0 24px 50px rgba(0, 0, 0, 0.85), 0 0 1px rgba(255,255,255,0.15);
         overflow: hidden;
       ">
-        <!-- Pokédex Sensor Lights Bar -->
+        <!-- Pokedex Sensor Lights Bar -->
         <div style="
           background: linear-gradient(135deg, #e11d48 0%, #b91c1c 100%);
           padding: 10px 14px;
           border-bottom: 2px solid #991b1b;
           display: flex; justify-content: space-between; align-items: center;
         ">
-          <!-- Pokédex Lenses -->
+          <!-- Pokedex Lenses -->
           <div style="display: flex; align-items: center; gap: 8px;">
             <div style="
               width: 22px; height: 22px; border-radius: 50%;
@@ -247,15 +251,15 @@
             <span style="font-size: 12px; font-weight: 900; color: #f8fafc; letter-spacing: 0.5px;">SILPH SCOPE</span>
             <span style="font-size: 9px; font-weight: 800; color: #ef4444; background: rgba(239,68,68,0.15); padding: 1px 5px; border-radius: 4px;">GEN-9</span>
           </div>
-          <span style="font-size: 9px; color: #64748b; font-family: monospace;">VER 2.5</span>
+          <span style="font-size: 9px; color: #38bdf8; font-family: monospace; font-weight: 800; background: rgba(56,189,248,0.1); padding: 1px 6px; border-radius: 4px; border: 1px solid rgba(56,189,248,0.25);">v2.9.0</span>
         </div>
 
-        <!-- Pokédex Tabs -->
+        <!-- Pokedex Tabs -->
         <div style="padding: 10px 12px 6px 12px;">
           <div style="background: #060913; border: 1px solid rgba(255,255,255,0.06); border-radius: 8px; padding: 3px; display: flex; gap: 3px;">
             <button class="ps-tab-btn active" data-tab="radar">ITEMFINDER</button>
             <button class="ps-tab-btn" data-tab="tweaks">BAG &amp; UTILS</button>
-            <button class="ps-tab-btn" data-tab="mods">POKÉ-LAB</button>
+            <button class="ps-tab-btn" data-tab="mods">POKE-LAB</button>
           </div>
         </div>
 
@@ -340,7 +344,7 @@
 
             <div class="ps-row">
               <div>
-                <div style="font-weight: 800; font-size: 12px; color: #f8fafc;">Infinite Rerolls (∞)</div>
+                <div style="font-weight: 800; font-size: 12px; color: #f8fafc;">Infinite Rerolls (INF)</div>
                 <div style="font-size: 10px; color: #64748b;">Unlimited card selection rolls</div>
               </div>
               <label class="ps-poke-switch">
@@ -352,13 +356,13 @@
             </div>
           </div>
 
-          <!-- TAB 3: POKÉ-LAB (MODS) -->
+          <!-- TAB 3: POKE-LAB (MODS) -->
           <div id="ps-tab-mods" class="ps-tab-pane" style="display:none;flex-direction:column;gap:8px;">
             <div class="ps-row" style="flex-direction:column;align-items:stretch;gap:8px;border-color:rgba(239,68,68,0.3);">
               <div style="display:flex;justify-content:space-between;align-items:center;">
                 <div>
                   <div style="font-weight: 800; font-size: 12px; color: #f8fafc;">Rare Candy Overdrive</div>
-                  <div style="font-size: 10px; color: #94a3b8;">45k HP • 1,900x ATK • Shell Bell</div>
+                  <div style="font-size: 10px; color: #94a3b8;">45k HP - 1,900x ATK - Shell Bell</div>
                 </div>
                 <span id="ps-god-badge" style="font-size:9px;font-weight:900;padding:2px 6px;border-radius:4px;background:#1e293b;color:#94a3b8;">OFF</span>
               </div>
@@ -368,22 +372,35 @@
               ">Activate Overdrive</button>
             </div>
 
+            <div class="ps-row">
+              <div>
+                <div style="font-weight: 800; font-size: 12px; color: #f8fafc;">Arceus Aegis (30m+)</div>
+                <div style="font-size: 10px; color: #94a3b8;">Nullifies Judgment touch & hazards</div>
+              </div>
+              <label class="ps-poke-switch">
+                <input type="checkbox" id="ps-c-arceus" ${cfg.arceusShield ? 'checked' : ''}>
+                <div class="ps-poke-track">
+                  <div class="ps-poke-knob"></div>
+                </div>
+              </label>
+            </div>
+
             <div class="ps-row" style="flex-direction:column;align-items:stretch;gap:8px;border-color:rgba(56,189,248,0.3);">
               <div style="display:flex;justify-content:space-between;align-items:center;">
                 <div>
                   <div style="font-weight: 800; font-size: 12px; color: #f8fafc;">Professor's PC</div>
-                  <div style="font-size: 10px; color: #94a3b8;">All Pokémon + Shinies + 999k Coins</div>
+                  <div style="font-size: 10px; color: #94a3b8;">All Pokemon + Shinies + 999k Coins</div>
                 </div>
               </div>
               <button id="ps-btn-account" class="ps-btn-tactical" style="
                 width: 100%; background: linear-gradient(135deg, #0284c7, #0369a1); color: #ffffff; padding: 8px 10px; font-size: 11px;
                 box-shadow: 0 2px 8px rgba(2,132,199,0.3);
-              ">Unlock All Pokémon</button>
+              ">Unlock All Pokemon</button>
             </div>
           </div>
         </div>
 
-        <!-- Pokédex Footer -->
+        <!-- Pokedex Footer -->
         <div style="
           background: #080d1a; padding: 7px 12px;
           border-top: 1px solid rgba(255,255,255,0.06);
@@ -401,7 +418,7 @@
             color: #fbbf24; padding: 2px 7px; border-radius: 5px;
             text-decoration: none; font-size: 9.5px; font-weight: 800;
           ">
-            ☕ Tip Creator
+            [Coffee] Tip Creator
           </a>
         </div>
       </div>
@@ -411,14 +428,21 @@
     const floatBtn = document.getElementById('ps-float-btn');
     const mainPanel = document.getElementById('ps-main-panel');
     function toggleMenu() {
-      mainPanel.style.display = mainPanel.style.display === 'none' ? 'block' : 'none';
+      const mp = document.getElementById('ps-main-panel');
+      if (!mp) return;
+      mp.style.display = (mp.style.display === 'none' || !mp.style.display) ? 'block' : 'none';
     }
-    floatBtn.onclick = toggleMenu;
+    if (floatBtn) floatBtn.onclick = toggleMenu;
+    window.toggleSilphMenu = toggleMenu;
 
     window.addEventListener('keydown', e => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-      if (e.code === 'KeyH') { e.preventDefault(); toggleMenu(); }
-    });
+      if (e.target && (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA')) return;
+      if (e.code === 'KeyH' || e.key === 'h' || e.key === 'H') {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        toggleMenu();
+      }
+    }, true);
 
     // Tab switcher
     const tabBtns = root.querySelectorAll('.ps-tab-btn');
@@ -445,6 +469,7 @@
     bindCheck('ps-c-springs', 'espSprings');
     bindCheck('ps-c-bosses', 'espBosses');
     bindCheck('ps-c-chest', 'instaChest');
+    bindCheck('ps-c-arceus', 'arceusShield');
 
     const rrInput = document.getElementById('ps-c-rr');
     if (rrInput) {
@@ -494,7 +519,7 @@
           } catch (e) {}
         }
       }
-      alert('✅ SUCCESS! Max upgrades applied, 999,999 coins & tickets added, all Pokémon + Shiny forms unlocked!');
+      alert('[OK] SUCCESS! Max upgrades applied, 999,999 coins & tickets added, all Pokemon + Shiny forms unlocked!');
     };
 
     // God-Buff Toggle System
@@ -524,7 +549,7 @@
     function toggleGodBuff() {
       const pl = (typeof G !== 'undefined' && G.Game && G.Game.player) || (typeof G !== 'undefined' && G.Combat && G.Combat.player);
       if (!pl) {
-        alert('⚠️ Please start or enter a match first to toggle God-Tier stats!');
+        alert('[!] Please start or enter a match first to toggle God-Tier stats!');
         return;
       }
 
@@ -541,9 +566,9 @@
             magnet: pl.magnet || 100
           };
         }
-        pl.maxHp = 45000;
-        pl.hp = 45000;
-        pl.atkMul = 1900;
+        pl.maxHp = 42000;
+        pl.hp = 42000;
+        pl.atkMul = 1800;
         pl.cdMul = 0.04;
         pl.spdMul = 3.2;
         pl.magnet = 2500;
@@ -576,6 +601,16 @@
         return;
       }
 
+      if (cfg.godBuffActive) {
+        // Enforce clean() boundaries so upgrades never fail anti-cheat
+        if (pl.maxHp > 48000) pl.maxHp = 48000;
+        if (pl.hp > pl.maxHp) pl.hp = pl.maxHp;
+        if (pl.atkMul > 1950) pl.atkMul = 1950;
+        if (pl.cdMul < 0.035) pl.cdMul = 0.035;
+        if (pl.spdMul > 22) pl.spdMul = 22;
+        if (pl.hp < pl.maxHp) pl.hp = pl.maxHp;
+      }
+
       if (pl._psLegitBonus === undefined) {
         pl._psLegitBonus = (pl.rerollBonus !== 9999) ? (pl.rerollBonus || 0) : 0;
         pl._psLegitRerolls = (pl.rerollBonus !== 9999) ? (pl.rerolls || 0) : 0;
@@ -585,7 +620,7 @@
         pl.rerollBonus = 9999;
         pl.rerolls = 0;
       }
-    }, 500);
+    }, 200);
 
     setupESP();
   }
@@ -612,7 +647,67 @@
   hookInteract();
 
   // =========================================================================
-  // 5. NIESKOŃCZONE REROLLE KART (REROLL ∞) & PRZYWRACANIE LIMITU
+  // 5. ARCEUS AEGIS (NEUTRALIZE JUDGMENT PILLARS, BEAMS & TOUCH FOR TOP 1)
+  // =========================================================================
+  function hookArceusAegis() {
+    // 1. Hook G.Player.prototype.hurt (Clean: Object.prototype.hasOwnProperty is FALSE)
+    if (typeof G !== 'undefined' && G.Player && G.Player.prototype && !G.Player._psHurtHooked) {
+      G.Player._psHurtHooked = true;
+      const origHurt = G.Player.prototype.hurt;
+      G.Player.prototype.hurt = function(amount, type, pure, cat) {
+        if (cfg.arceusShield) {
+          const inJudgment = (typeof G !== 'undefined' && G.Judgment && G.Judgment.active);
+          if (pure || inJudgment || (this.maxHp && amount >= this.maxHp * 0.15)) {
+            // Complete nullification: Arceus touch, Judgment hazards & multiplying legendaries
+            return;
+          }
+        }
+        return origHurt.apply(this, arguments);
+      };
+    }
+
+    // 2. Hook G.Hazards (Arceus drops 30%-40% maxHp pillars and beams)
+    if (typeof G !== 'undefined' && G.Hazards && !G.Hazards._psHooked) {
+      G.Hazards._psHooked = true;
+      const origAdd = G.Hazards.add;
+      if (typeof origAdd === 'function') {
+        G.Hazards.add = function(h, fromNet) {
+          if (cfg.arceusShield && h && (h.pct || h.vis === 'pillar' || h.color === '#ffd25e' || h.color === '#fff3b0')) {
+            h.pct = 0;
+            h.dmg = 0;
+          }
+          return origAdd.apply(this, arguments);
+        };
+      }
+    }
+
+    // 3. Hook G.Judgment.update
+    if (typeof G !== 'undefined' && G.Judgment && G.Judgment.update && !G.Judgment._psHooked) {
+      G.Judgment._psHooked = true;
+      const origJudgUpdate = G.Judgment.update;
+      G.Judgment.update = function(dt, pl, time) {
+        if (cfg.arceusShield && pl) {
+          const plProxy = new Proxy(pl, {
+            get(target, prop, receiver) {
+              if (prop === 'hurt') return () => 0;
+              const val = Reflect.get(target, prop, receiver);
+              return typeof val === 'function' ? val.bind(target) : val;
+            }
+          });
+          return origJudgUpdate.call(this, dt, plProxy, time);
+        }
+        return origJudgUpdate.apply(this, arguments);
+      };
+    }
+
+    if (!window.G || !window.G.Player || !window.G.Player._psHurtHooked || !window.G.Hazards || !window.G.Hazards._psHooked) {
+      setTimeout(hookArceusAegis, 300);
+    }
+  }
+  hookArceusAegis();
+
+  // =========================================================================
+  // 6. INFINITE REROLLS (REROLL INF) & RESTORING LEGIT STATE
   // =========================================================================
   function syncRerollState() {
     const pl = (typeof G !== 'undefined' && G.Game && G.Game.player);
@@ -630,7 +725,7 @@
       pl.rerollBonus = 9999;
       pl.rerolls = 0;
       if (btn) btn.classList.remove('hidden');
-      if (num) num.textContent = '∞';
+      if (num) num.textContent = 'INF';
     } else {
       // Revert from 9999 back to legitimate user stats
       pl.rerollBonus = pl._psLegitBonus !== undefined ? pl._psLegitBonus : 0;
@@ -687,7 +782,46 @@
   }, true);
 
   // =========================================================================
-  // 6. VISUAL ESP RADAR (TACTICAL CANVAS OVERLAY)
+  // 6. OFFICIAL LEADERBOARD COMPLIANCE FILTER (FIREBASE RULES GUARANTEE)
+  // =========================================================================
+  function hookRankingFilter() {
+    if (typeof G !== 'undefined' && G.Ranking && G.Ranking.submitSolo) {
+      if (G.Ranking._psFiltered) return;
+      G.Ranking._psFiltered = true;
+      const origSubmit = G.Ranking.submitSolo;
+      G.Ranking.submitSolo = function(r) {
+        if (r && typeof r === 'object') {
+          // 1. Cap time to 45:00 (2700s) maximum allowed by Firebase rule (d.t <= 2700)
+          if (r.t > 2700) r.t = 2700;
+          // 2. Cap kills to safe limit under Firebase formula: d.kills <= 100 + d.t * 12 (max 32,500 at 45m)
+          const maxKills = Math.floor(100 + (r.t || 2700) * 11.5);
+          if (r.kills > maxKills) r.kills = maxKills;
+          // 3. Cap level under Firebase formula: d.lv <= 10 + d.t / 4
+          const maxLv = Math.floor(10 + (r.t || 2700) / 4);
+          if (r.lv > maxLv) r.lv = maxLv;
+        }
+        const p = origSubmit.apply(this, arguments);
+        if (p && typeof p.then === 'function') {
+          p.then(() => {
+            // Flush ranking caches so local browser refreshes instantly
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+              const k = localStorage.key(i);
+              if (k && (k.startsWith('ps.rk.c.') || k.startsWith('ps.rk.b.'))) {
+                localStorage.removeItem(k);
+              }
+            }
+          }).catch(() => {});
+        }
+        return p;
+      };
+    } else {
+      setTimeout(hookRankingFilter, 400);
+    }
+  }
+  hookRankingFilter();
+
+  // =========================================================================
+  // 7. VISUAL ESP RADAR (TACTICAL CANVAS OVERLAY)
   // =========================================================================
   function setupESP() {
     const gameCv = document.getElementById('game');
@@ -773,7 +907,7 @@
               y: s.y,
               yOffset: -12,
               r: 22,
-              icon: '🎁',
+              icon: '[Chest]',
               name: 'CHEST',
               color: '#fbbf24',
               borderColor: '#fbbf24',
@@ -785,7 +919,7 @@
               y: s.y,
               yOffset: -14,
               r: 20,
-              icon: '⚡',
+              icon: '[*]',
               name: 'ALTAR',
               color: '#38bdf8',
               borderColor: '#38bdf8',
@@ -797,7 +931,7 @@
               y: s.y,
               yOffset: -6,
               r: 26,
-              icon: '💧',
+              icon: '[Spring]',
               name: 'HEAL',
               color: '#4ade80',
               borderColor: '#4ade80',
@@ -820,7 +954,7 @@
               y: e.y,
               yOffset: -(e.bodyH ? e.bodyH * 0.45 : 18),
               r: Math.max(26, (e.r || 20) * 1.25),
-              icon: '👑',
+              icon: '[Boss]',
               name: `${bName} [${hpPct}%]`,
               color: '#ef4444',
               borderColor: '#ef4444',
@@ -833,7 +967,7 @@
               y: e.y,
               yOffset: -(e.bodyH ? e.bodyH * 0.45 : 14),
               r: 22,
-              icon: '✨',
+              icon: '[Shiny]',
               name: `SHINY ${sName}`,
               color: '#f472b6',
               borderColor: '#f472b6',
@@ -955,5 +1089,5 @@
   }
 
   bootSuite();
-  console.log('%c[Poké-Suite v2.5] Ready to play with Silph Tactical HUD!', 'color:#ef4444;font-weight:bold;font-size:14px;');
+  console.log('%c[Poke-Suite v2.9.0] Ready to play with Silph Tactical HUD!', 'color:#ef4444;font-weight:bold;font-size:14px;');
 })();
